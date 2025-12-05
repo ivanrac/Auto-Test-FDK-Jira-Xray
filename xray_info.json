@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "project": {
+      "key": "FDK"
+    },
+    "summary": "Automatizované prihlásenie (Playwright)",
+    "issuetype": {
+      "name": "Test Execution"
+    }
+  },
+  "testIssueKey": "FDK-29"
+}

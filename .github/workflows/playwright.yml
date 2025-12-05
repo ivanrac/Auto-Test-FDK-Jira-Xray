@@ -1,27 +1,58 @@
-name: Playwright Tests
+name: FDK Playwright Testy & Xray Report
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
 jobs:
-  test:
+  test_and_report:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
         node-version: lts/*
+        
     - name: Install dependencies
       run: npm ci
+      
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+      
+    # ----------------------------------------------------
+    # Krok 1: Spustenie testov a generovanie JUnit XML
+    # ----------------------------------------------------
     - name: Run Playwright tests
       run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
+      # Spustí sa aj pri zlyhaní, aby sa stihol report odoslať
+      continue-on-error: true 
+      
+    # ----------------------------------------------------
+    # Krok 2: Nahrávanie výsledkov do Xray
+    # ----------------------------------------------------
+    - name: Upload results to Xray
+      uses: "marketplace/xray-github-action@v2"
+      # Spustí sa vždy (aj po zlyhaní testov)
+      if: always()
       with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+        # Autentifikácia
+        client_id: ${{ secrets.XRAY_CLIENT_ID }} 
+        client_secret: ${{ secrets.XRAY_CLIENT_SECRET }}
+        
+        # Cesta k výslednému JUnit XML súboru
+        file: 'playwright-results/results.xml' 
+        
+        # Určenie formátu
+        format: "junit"
+        
+        # Metadata pre novú Test Execution
+        test_execution_key: "FDK" 
+        execution_summary: "Automatizovaný Playwright Run - Valid Login"
+        test_issue_keys: "FDK-29"

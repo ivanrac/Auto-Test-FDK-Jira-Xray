@@ -1,14 +1,23 @@
 {
-  "name": "auto-test-fdk-jira-xray",
+  "name": "auto-test-bazos",
   "version": "1.0.0",
-  "description": "",
+  "description": "Playwright testy pre Bazos.sk s dátami z Excelu.",
   "main": "index.js",
-  "scripts": {},
-  "keywords": [],
+  "scripts": {
+    "start": "node runScreening.js",
+    "test:prep": "node runScreening.js",
+    "test:run": "npx playwright test ./tests/bazos.spec.js",
+    "test": "npm run test:prep && npm run test:run"
+  },
+  "keywords": [
+    "playwright",
+    "excel",
+    "automation"
+  ],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.1"
+  "dependencies": {
+    "@playwright/test": "^1.44.1",
+    "xlsx": "^0.18.5"
   }
 }
