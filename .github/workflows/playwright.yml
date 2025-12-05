@@ -1,6 +1,5 @@
 name: FDK Playwright Testy & Xray Report
 
-# Akcia sa spustí pri pushi do hlavných vetiev a pri Pull Requeste
 on:
   push:
     branches: [ main, master ]
@@ -32,29 +31,40 @@ jobs:
     # ----------------------------------------------------
     - name: Run Playwright tests
       run: npx playwright test
-      # Spustí sa aj pri zlyhaní, aby sa stihol report odoslať
       continue-on-error: true 
       
     # ----------------------------------------------------
-    # Krok 2: Nahrávanie výsledkov do Xray
-    # POUŽITIE SPRÁVNEJ XRAY AKCIE
+    # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
     # ----------------------------------------------------
-    - name: Upload results to Xray
-      uses: "Xray-App/action-import-test-results@v2"  # <-- OPRAVENÝ NÁZOV REPOZITÁRA
-      # Spustí sa vždy (aj po zlyhaní testov)
+    - name: Upload results to Xray via cURL
       if: always()
-      with:
-        # Autentifikácia pomocou tajných kľúčov (secrets)
-        client_id: ${{ secrets.XRAY_CLIENT_ID }} 
-        client_secret: ${{ secrets.XRAY_CLIENT_SECRET }}
+      env:
+        XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }} 
+        XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
+      run: |
+        # 1. Získanie Xray Tokenu
+        XRAY_AUTH_URL="https://xray.cloud.getxray.app/api/v2/authenticate"
+        XRAY_IMPORT_URL="https://xray.cloud.getxray.app/api/v2/import/execution/junit"
+        REPORT_FILE="./playwright-results/results.xml"
         
-        # Cesta k výslednému JUnit XML súboru (nastavené v playwright.config.js)
-        file: 'playwright-results/results.xml' 
+        echo "1/2: Získavam Xray autentifikačný token..."
+        XRAY_TOKEN=$(curl -s -X POST $XRAY_AUTH_URL \
+            -H "Content-Type: application/json" \
+            -d "{\"client_id\": \"$XRAY_CLIENT_ID\", \"client_secret\": \"$XRAY_CLIENT_SECRET\"}" | tr -d '"')
+
+        if [ -z "$XRAY_TOKEN" ]; then
+            echo "CHYBA: Nepodarilo sa získať Xray Token. Nahrávanie prerušené."
+            exit 0
+        fi
         
-        # Určenie formátu
-        format: "junit"
+        echo "Token úspešne získaný. Nahrávam výsledky..."
         
-        # Metadata pre novú Test Execution
-        test_execution_key: "FDK" # Projektový kľúč (FDK)
-        execution_summary: "Automatizovaný Playwright Run - Valid Login (CI)"
-        test_issue_keys: "FDK-29" # Priradenie výsledkov k tomuto testu
+        # 2. Nahrávanie JUnit XML do Xray a priradenie k testu FDK-29
+        # Používame endpoint s parametrami ProjectKey a TestIssueKey
+        curl -X POST "${XRAY_IMPORT_URL}?projectKey=FDK&testIssueKey=FDK-29&summary=Automatizovaný%20Playwright%20Run%20-%20Valid%20Login%20(CI)" \
+             -H "Content-Type: text/xml" \
+             -H "Authorization: Bearer $XRAY_TOKEN" \
+             --data-binary "@$REPORT_FILE"
+
+        echo ""
+        echo "Nahrávanie dokončené. Výsledok nájdete v JIRA."
