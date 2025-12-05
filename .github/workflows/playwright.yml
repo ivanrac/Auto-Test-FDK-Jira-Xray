@@ -1,5 +1,6 @@
 name: FDK Playwright Testy & Xray Report
 
+# Akcia sa spustí pri pushi do hlavných vetiev a pri Pull Requeste
 on:
   push:
     branches: [ main, master ]
@@ -36,23 +37,24 @@ jobs:
       
     # ----------------------------------------------------
     # Krok 2: Nahrávanie výsledkov do Xray
+    # POUŽITIE SPRÁVNEJ XRAY AKCIE
     # ----------------------------------------------------
     - name: Upload results to Xray
-      uses: "marketplace/xray-github-action@v2"
+      uses: "Xray-App/action-import-test-results@v2"  # <-- OPRAVENÝ NÁZOV REPOZITÁRA
       # Spustí sa vždy (aj po zlyhaní testov)
       if: always()
       with:
-        # Autentifikácia
+        # Autentifikácia pomocou tajných kľúčov (secrets)
         client_id: ${{ secrets.XRAY_CLIENT_ID }} 
         client_secret: ${{ secrets.XRAY_CLIENT_SECRET }}
         
-        # Cesta k výslednému JUnit XML súboru
+        # Cesta k výslednému JUnit XML súboru (nastavené v playwright.config.js)
         file: 'playwright-results/results.xml' 
         
         # Určenie formátu
         format: "junit"
         
         # Metadata pre novú Test Execution
-        test_execution_key: "FDK" 
-        execution_summary: "Automatizovaný Playwright Run - Valid Login"
-        test_issue_keys: "FDK-29"
+        test_execution_key: "FDK" # Projektový kľúč (FDK)
+        execution_summary: "Automatizovaný Playwright Run - Valid Login (CI)"
+        test_issue_keys: "FDK-29" # Priradenie výsledkov k tomuto testu
