@@ -13,14 +13,18 @@ on:
   # Spustiť každý deň o 05:00 UTC
   # ----------------------------------------------------
   schedule:
+    # Uistite sa, že - cron: je odsadené dvomi medzerami od 'schedule:'
     - cron: '0 5 * * *' 
-
+    
+# TENTO RIADOK NESMIE MAŤ ŽIADNE MEDZERY PRED 'jobs:'
 jobs:
   test_and_report:
     # Ak celý job spadne (pretože testy zlyhajú), pošle notifikáciu.
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
+    
+    # ... (VŠETKY KROKY VRÁTANE TEJ DOČASNEJ CHYBY MUSIA BYŤ SPRÁVNE ODSADENÉ)
     
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -40,11 +44,10 @@ jobs:
     # Krok 1: Spustenie testov a generovanie JUnit XML
     # ----------------------------------------------------
     - name: Run Playwright tests
-      run: npx playwright test
+      run: npx playwright test  # <--- Uistite sa, že tento riadok už neobsahuje '--UNKNOWN_FAIL_COMMAND'
       
     # ----------------------------------------------------
     # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
-    # Xray sa spustí VŽDY, aby sa nahral status FAIL/PASS
     # ----------------------------------------------------
     - name: Upload results to Xray via cURL
       if: always() 
