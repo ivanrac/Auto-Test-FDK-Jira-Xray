@@ -39,8 +39,8 @@ jobs:
     # ----------------------------------------------------
     # Krok 1: Spustenie testov a generovanie JUnit XML
     # ----------------------------------------------------
-   - name: Run Playwright tests (TEMPORARY FAIL CHECK)
-      run: npx playwright test --UNKNOWN_FAIL_COMMAND
+    - name: Run Playwright tests
+      run: npx playwright test
       
     # ----------------------------------------------------
     # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
