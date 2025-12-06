@@ -8,6 +8,13 @@ on:
   # UMOŽŇUJE MANUÁLNE SPUSTENIE
   workflow_dispatch:
 
+  # ----------------------------------------------------
+  # NOVÉ: Nastavenie denného spustenia
+  # Spustiť každý deň o 05:00 UTC
+  # ----------------------------------------------------
+  schedule:
+    - cron: '0 5 * * *' 
+
 jobs:
   test_and_report:
     # Ak celý job spadne (pretože testy zlyhajú), pošle notifikáciu.
@@ -31,12 +38,9 @@ jobs:
       
     # ----------------------------------------------------
     # Krok 1: Spustenie testov a generovanie JUnit XML
-    # Oprava: Riadok 'continue-on-error: true' je odstránený.
-    # Ak teraz testy zlyhajú, celý Job dostane status 'Failure'.
     # ----------------------------------------------------
     - name: Run Playwright tests
       run: npx playwright test
-      # Zlyhanie testov teraz spôsobí zlyhanie celého Jobu pre správne notifikácie
       
     # ----------------------------------------------------
     # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
@@ -55,8 +59,8 @@ jobs:
         
         echo "1/2: Získavam Xray autentifikačný token..."
         XRAY_TOKEN=$(curl -s -X POST $XRAY_AUTH_URL \
-            -H "Content-Type: application/json" \
-            -d "{\"client_id\": \"$XRAY_CLIENT_ID\", \"client_secret\": \"$XRAY_CLIENT_SECRET\"}" | tr -d '"')
+             -H "Content-Type: application/json" \
+             -d "{\"client_id\": \"$XRAY_CLIENT_ID\", \"client_secret\": \"$XRAY_CLIENT_SECRET\"}" | tr -d '"')
 
         if [ -z "$XRAY_TOKEN" ]; then
             echo "CHYBA: Nepodarilo sa získať Xray Token. Nahrávanie prerušené."
@@ -68,9 +72,9 @@ jobs:
         # 2. Nahrávanie JUnit XML do Xray a priradenie k testu FDK-29
         # Používame endpoint s parametrami ProjectKey a TestIssueKey
         curl -X POST "${XRAY_IMPORT_URL}?projectKey=FDK&testIssueKey=FDK-29&summary=Automatizovaný%20Playwright%20Run%20-%20Valid%20Login%20(CI)" \
-             -H "Content-Type: text/xml" \
-             -H "Authorization: Bearer $XRAY_TOKEN" \
-             --data-binary "@$REPORT_FILE"
+              -H "Content-Type: text/xml" \
+              -H "Authorization: Bearer $XRAY_TOKEN" \
+              --data-binary "@$REPORT_FILE"
 
         echo ""
         echo "Nahrávanie dokončené. Výsledok nájdete v JIRA."
