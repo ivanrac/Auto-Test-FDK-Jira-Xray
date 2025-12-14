@@ -49,14 +49,14 @@ jobs:
       uses: dawidd6/action-send-mail@v3
       with:
         # SMTP KONFIGURÁCIA (Použite nastavenie z Secrets)
-        server_address: ${{ secrets.MAIL_SERVER }} # Očakáva sa smtp.seznam.cz
-        server_port: ${{ secrets.MAIL_PORT }}     # Očakáva sa 465
+        server_address: ${{ secrets.MAIL_SERVER }} 
+        server_port: ${{ secrets.MAIL_PORT }}     # ZMENENÉ: Očakáva sa 587
         username: ${{ secrets.MAIL_USERNAME }}
-        password: ${{ secrets.MAIL_PASSWORD }}    # Očakáva sa Aplikačné heslo
+        password: ${{ secrets.MAIL_PASSWORD }}    
         
-        # OPRAVA: Odosielateľ a Zabezpečenie (Kritické pre SMTP)
+        # OPRAVENÉ: Zmena na secure: false pre Port 587 (STARTTLS)
         from: ${{ secrets.MAIL_USERNAME }}
-        secure: true # Nastavené pre PORT 465 (SSL)
+        secure: false 
         
         # Nastavenie príjemcov - Posiela na obe adresy
         to: |
