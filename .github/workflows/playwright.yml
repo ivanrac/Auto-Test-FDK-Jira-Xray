@@ -48,17 +48,17 @@ jobs:
       if: failure() # Spustí sa LEN ak predchádzajúci krok zlyhal
       uses: dawidd6/action-send-mail@v3
       with:
-        # Používa tajomstvá, ktoré ste vytvorili (MAIL_SERVER, atď.)
+        # SMTP KONFIGURÁCIA
         server_address: ${{ secrets.MAIL_SERVER }}
         server_port: ${{ secrets.MAIL_PORT }}
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         
-        # OPRAVA CHYBY: Pridanie 'from' a 'secure' pre spoľahlivosť
-        from: ${{ secrets.MAIL_USERNAME }} # Adresa odosielateľa musí byť uvedená
-        secure: true # Zvyčajne true pre port 465 (ak používate port 587, zmeňte na false)
+        # OPRAVA: Odosielateľ a Zabezpečenie (dôležité pre SMTP)
+        from: ${{ secrets.MAIL_USERNAME }}
+        secure: true # Ak používate port 587 (STARTTLS), zmeňte na secure: false
         
-        # Nastavenie príjemcov
+        # Nastavenie príjemcov - MUSIA BYŤ OBJA DVA RIADKY
         to: |
           martin.kucera@ekultura.eu
           tester033@seznam.cz  
@@ -101,7 +101,6 @@ jobs:
         echo "Token úspešne získaný. Nahrávam výsledky..."
         
         # 2. Nahrávanie JUnit XML do Xray a priradenie k testu FDK-29
-        # Používame endpoint s parametrami ProjectKey a TestIssueKey
         curl -X POST "${XRAY_IMPORT_URL}?projectKey=FDK&testIssueKey=FDK-29&summary=Automatizovaný%20Playwright%20Run%20-%20Valid%20Login%20(CI)" \
              -H "Content-Type: text/xml" \
              -H "Authorization: Bearer $XRAY_TOKEN" \
