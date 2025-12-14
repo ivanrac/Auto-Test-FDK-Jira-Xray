@@ -9,22 +9,17 @@ on:
   workflow_dispatch:
 
   # ----------------------------------------------------
-  # NOVÉ: Nastavenie denného spustenia
+  # Nastavenie denného spustenia
   # Spustiť každý deň o 05:00 UTC
   # ----------------------------------------------------
   schedule:
-    # Uistite sa, že - cron: je odsadené dvomi medzerami od 'schedule:'
-    - cron: '0 5 * * *' 
+    - cron: '0 5 * * *'
     
-# TENTO RIADOK NESMIE MAŤ ŽIADNE MEDZERY PRED 'jobs:'
 jobs:
   test_and_report:
-    # Ak celý job spadne (pretože testy zlyhajú), pošle notifikáciu.
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    
-    # ... (VŠETKY KROKY VRÁTANE TEJ DOČASNEJ CHYBY MUSIA BYŤ SPRÁVNE ODSADENÉ)
     
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -44,13 +39,42 @@ jobs:
     # Krok 1: Spustenie testov a generovanie JUnit XML
     # ----------------------------------------------------
     - name: Run Playwright tests
-      run: npx playwright test  # <--- Uistite sa, že tento riadok už neobsahuje '--UNKNOWN_FAIL_COMMAND'
+      run: npx playwright test
       
+    # ====================================================
+    # NOVÝ KROK: Poslanie e-mailu pri ZLYHANÍ testov
+    # ====================================================
+    - name: Send Failure Notification Email
+      if: failure() # Spustí sa LEN ak predchádzajúci krok zlyhal
+      uses: dawidd6/action-send-mail@v3
+      with:
+        # Používa tajomstvá, ktoré ste vytvorili (MAIL_SERVER, atď.)
+        server_address: ${{ secrets.MAIL_SERVER }}
+        server_port: ${{ secrets.MAIL_PORT }}
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        
+        # Nastavenie príjemcov
+        to: |
+          martin.kucera@ekultura.eu
+          tester033@seznam.cz 
+
+        # Obsah správy
+        subject: '🚨 CRON JOB ZLYHAL: Playwright Login Test (FDK Repo)'
+        body: |
+          Ahoj,
+          Automatizovaný ranný Playwright test prihlásenia (spustený cez Cron) ZLYHAL.
+          
+          Prosím, skontrolujte logy akcie pre viac detailov:
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          GitHub Action: FDK Playwright Testy & Xray Report
+          
     # ----------------------------------------------------
     # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
     # ----------------------------------------------------
     - name: Upload results to Xray via cURL
-      if: always() 
+      if: always() # Spustí sa vždy, aby sa nahrali aj zlyhané testy
       env:
         XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }} 
         XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
