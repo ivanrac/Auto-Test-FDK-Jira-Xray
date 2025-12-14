@@ -48,17 +48,17 @@ jobs:
       if: failure() # Spustí sa LEN ak predchádzajúci krok zlyhal
       uses: dawidd6/action-send-mail@v3
       with:
-        # SMTP KONFIGURÁCIA
-        server_address: ${{ secrets.MAIL_SERVER }}
-        server_port: ${{ secrets.MAIL_PORT }}
+        # SMTP KONFIGURÁCIA (Použite nastavenie z Secrets)
+        server_address: ${{ secrets.MAIL_SERVER }} # Očakáva sa smtp.seznam.cz
+        server_port: ${{ secrets.MAIL_PORT }}     # Očakáva sa 465
         username: ${{ secrets.MAIL_USERNAME }}
-        password: ${{ secrets.MAIL_PASSWORD }}
+        password: ${{ secrets.MAIL_PASSWORD }}    # Očakáva sa Aplikačné heslo
         
-        # OPRAVA: Odosielateľ a Zabezpečenie (dôležité pre SMTP)
+        # OPRAVA: Odosielateľ a Zabezpečenie (Kritické pre SMTP)
         from: ${{ secrets.MAIL_USERNAME }}
-        secure: true # Ak používate port 587 (STARTTLS), zmeňte na secure: false
+        secure: true # Nastavené pre PORT 465 (SSL)
         
-        # Nastavenie príjemcov - MUSIA BYŤ OBJA DVA RIADKY
+        # Nastavenie príjemcov - Posiela na obe adresy
         to: |
           martin.kucera@ekultura.eu
           tester033@seznam.cz  
