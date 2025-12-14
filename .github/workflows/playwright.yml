@@ -54,10 +54,14 @@ jobs:
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         
+        # OPRAVA CHYBY: Pridanie 'from' a 'secure' pre spoľahlivosť
+        from: ${{ secrets.MAIL_USERNAME }} # Adresa odosielateľa musí byť uvedená
+        secure: true # Zvyčajne true pre port 465 (ak používate port 587, zmeňte na false)
+        
         # Nastavenie príjemcov
         to: |
           martin.kucera@ekultura.eu
-          tester033@seznam.cz 
+          tester033@seznam.cz  
 
         # Obsah správy
         subject: '🚨 CRON JOB ZLYHAL: Playwright Login Test (FDK Repo)'
@@ -69,14 +73,14 @@ jobs:
           ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           
           GitHub Action: FDK Playwright Testy & Xray Report
-          
+        
     # ----------------------------------------------------
     # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
     # ----------------------------------------------------
     - name: Upload results to Xray via cURL
       if: always() # Spustí sa vždy, aby sa nahrali aj zlyhané testy
       env:
-        XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }} 
+        XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}  
         XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
       run: |
         # 1. Získanie Xray Tokenu
@@ -99,9 +103,9 @@ jobs:
         # 2. Nahrávanie JUnit XML do Xray a priradenie k testu FDK-29
         # Používame endpoint s parametrami ProjectKey a TestIssueKey
         curl -X POST "${XRAY_IMPORT_URL}?projectKey=FDK&testIssueKey=FDK-29&summary=Automatizovaný%20Playwright%20Run%20-%20Valid%20Login%20(CI)" \
-              -H "Content-Type: text/xml" \
-              -H "Authorization: Bearer $XRAY_TOKEN" \
-              --data-binary "@$REPORT_FILE"
+             -H "Content-Type: text/xml" \
+             -H "Authorization: Bearer $XRAY_TOKEN" \
+             --data-binary "@$REPORT_FILE"
 
         echo ""
         echo "Nahrávanie dokončené. Výsledok nájdete v JIRA."
