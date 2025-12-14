@@ -21,7 +21,7 @@ test('FDK-29: Uspesne prihlasenie s platnymi udajmi', async ({ page }) => {
     await page.locator('#id_username').fill(validUser.login_email); 
     
     // Zadáme hodnotu hesla do poľa s presným ID 'id_password'
-    await page.locator('#id_password').fill(validUser.login_password); 
+    await page.locator('#id_password').fill("ZLEheslo"); 
     
     // Kliknutie na tlačidlo prihlásenia
     await page.getByRole('button', { name: 'Přihlášení' }).click();
