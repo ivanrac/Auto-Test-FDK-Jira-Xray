@@ -42,27 +42,25 @@ jobs:
       run: npx playwright test
       
     # ====================================================
-    # NOVÝ KROK: Poslanie e-mailu pri ZLYHANÍ testov
+    # Krok 2: Poslanie e-mailu pri ZLYHANÍ testov
     # ====================================================
     - name: Send Failure Notification Email
       if: failure() # Spustí sa LEN ak predchádzajúci krok zlyhal
       uses: dawidd6/action-send-mail@v3
       with:
-        # SMTP KONFIGURÁCIA (Použijeme Gmail s Portom 465)
+        # SMTP KONFIGURÁCIA (Gmail: Port 465, Aplikačné heslo)
         server_address: ${{ secrets.MAIL_SERVER }} 
-        server_port: ${{ secrets.MAIL_PORT }}     # Je nastavené na 465
+        server_port: ${{ secrets.MAIL_PORT }}     
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}    
         
-        # NASTAVENÉ PRE PORT 465 (SSL/TLS)
+        # Nastavené pre Gmail (SSL/TLS)
         from: ${{ secrets.MAIL_USERNAME }}
-        secure: true # Správne nastavenie pre Gmail SMTP
+        secure: true 
         
-        # Nastavenie príjemcov - Váš mail je odosielateľ, tieto adresy sú príjemcovia
-        to: |
-          martin.kucera@ekultura.eu
-          tester033@seznam.cz  
-
+        # Nastavenie príjemcov - Iba spoľahlivá adresa
+        to: martin.kucera@ekultura.eu
+        
         # Obsah správy
         subject: '🚨 CRON JOB ZLYHAL: Playwright Login Test (FDK Repo)'
         body: |
@@ -75,7 +73,7 @@ jobs:
           GitHub Action: FDK Playwright Testy & Xray Report
         
     # ----------------------------------------------------
-    # Krok 2: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
+    # Krok 3: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
     # ----------------------------------------------------
     - name: Upload results to Xray via cURL
       if: always() # Spustí sa vždy, aby sa nahrali aj zlyhané testy
