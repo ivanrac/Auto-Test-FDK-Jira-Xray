@@ -48,17 +48,17 @@ jobs:
       if: failure() # Spustí sa LEN ak predchádzajúci krok zlyhal
       uses: dawidd6/action-send-mail@v3
       with:
-        # SMTP KONFIGURÁCIA (Použite nastavenie z Secrets)
+        # SMTP KONFIGURÁCIA (Použijeme Gmail s Portom 465)
         server_address: ${{ secrets.MAIL_SERVER }} 
-        server_port: ${{ secrets.MAIL_PORT }}     # ZMENENÉ: Očakáva sa 587
+        server_port: ${{ secrets.MAIL_PORT }}     # Je nastavené na 465
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}    
         
-        # OPRAVENÉ: Zmena na secure: false pre Port 587 (STARTTLS)
+        # NASTAVENÉ PRE PORT 465 (SSL/TLS)
         from: ${{ secrets.MAIL_USERNAME }}
-        secure: false 
+        secure: true # Správne nastavenie pre Gmail SMTP
         
-        # Nastavenie príjemcov - Posiela na obe adresy
+        # Nastavenie príjemcov - Váš mail je odosielateľ, tieto adresy sú príjemcovia
         to: |
           martin.kucera@ekultura.eu
           tester033@seznam.cz  
