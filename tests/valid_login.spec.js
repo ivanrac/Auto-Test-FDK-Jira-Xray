@@ -17,7 +17,7 @@ test('FDK-29: Uspesne prihlasenie s platnymi udajmi', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Přihlášení' }).click();
 
-  await expect(page.locator('h1.page-title:has-text("Vítejte, Ivan!")')).toBeVisible();
+  await expect(page.locator('h1.page-title')).toContainText('Vítejte, Ivan');
 
   await expect(page).toHaveURL('https://fdk.cz/');
 });
