@@ -29,13 +29,13 @@ export default defineConfig({
   ],
   
   /* Spoločné nastavenia pre všetky projekty. */
-  use: {
-    /* Základná URL, ktorá sa používa pre page.goto(). */
-    baseURL: 'https://fdk.cz/',
+ use: {
+  baseURL: 'https://fdk.cz/',
 
-    /* Zachytávať screenshoty na zlyhanie a stopy počas testu. */
-    trace: 'on-first-retry',
-  },
+  screenshot: 'only-on-failure',
+  video: 'retain-on-failure',
+  trace: 'retain-on-failure',
+},
 
   /* Konfigurácia pre rôzne prehliadače. */
   projects: [
