@@ -5,13 +5,8 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  # UMOŽŇUJE MANUÁLNE SPUSTENIE
   workflow_dispatch:
 
-  # ----------------------------------------------------
-  # Nastavenie denného spustenia
-  # Spustiť každý deň o 05:00 UTC
-  # ----------------------------------------------------
   schedule:
     - cron: '0 5 * * *'
     
@@ -35,33 +30,23 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
       
-    # ----------------------------------------------------
-    # Krok 1: Spustenie testov a generovanie JUnit XML
-    # ----------------------------------------------------
     - name: Run Playwright tests
+      env:
+        FDK_LOGIN_USERNAME: ${{ secrets.FDK_LOGIN_USERNAME }}
+        FDK_LOGIN_PASSWORD: ${{ secrets.FDK_LOGIN_PASSWORD }}
       run: npx playwright test
       
-    # ====================================================
-    # Krok 2: Poslanie e-mailu pri ZLYHANÍ testov
-    # ====================================================
     - name: Send Failure Notification Email
-      if: failure() # Spustí sa LEN ak predchádzajúci krok zlyhal
+      if: failure()
       uses: dawidd6/action-send-mail@v3
       with:
-        # SMTP KONFIGURÁCIA (Gmail: Port 465, Aplikačné heslo)
         server_address: ${{ secrets.MAIL_SERVER }} 
         server_port: ${{ secrets.MAIL_PORT }}     
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}    
-        
-        # Nastavené pre Gmail (SSL/TLS)
         from: ${{ secrets.MAIL_USERNAME }}
         secure: true 
-        
-        # Nastavenie príjemcov - Iba spoľahlivá adresa
         to: martin.kucera@ekultura.eu
-        
-        # Obsah správy
         subject: '🚨 CRON JOB ZLYHAL: Playwright Login Test (FDK Repo)'
         body: |
           Ahoj,
@@ -72,16 +57,12 @@ jobs:
           
           GitHub Action: FDK Playwright Testy & Xray Report
         
-    # ----------------------------------------------------
-    # Krok 3: Nahrávanie výsledkov do Xray POMOCOU cURL SKRIPTU
-    # ----------------------------------------------------
     - name: Upload results to Xray via cURL
-      if: always() # Spustí sa vždy, aby sa nahrali aj zlyhané testy
+      if: always()
       env:
         XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}  
         XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
       run: |
-        # 1. Získanie Xray Tokenu
         XRAY_AUTH_URL="https://xray.cloud.getxray.app/api/v2/authenticate"
         XRAY_IMPORT_URL="https://xray.cloud.getxray.app/api/v2/import/execution/junit"
         REPORT_FILE="./playwright-results/results.xml"
@@ -98,7 +79,6 @@ jobs:
         
         echo "Token úspešne získaný. Nahrávam výsledky..."
         
-        # 2. Nahrávanie JUnit XML do Xray a priradenie k testu FDK-29
         curl -X POST "${XRAY_IMPORT_URL}?projectKey=FDK&testIssueKey=FDK-29&summary=Automatizovaný%20Playwright%20Run%20-%20Valid%20Login%20(CI)" \
              -H "Content-Type: text/xml" \
              -H "Authorization: Bearer $XRAY_TOKEN" \
