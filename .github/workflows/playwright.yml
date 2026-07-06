@@ -30,59 +30,83 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
       
+    # ----------------------------------------------------
+    # Spustenie Playwright testov
+    # ----------------------------------------------------
     - name: Run Playwright tests
       env:
         FDK_LOGIN_USERNAME: ${{ secrets.FDK_LOGIN_USERNAME }}
         FDK_LOGIN_PASSWORD: ${{ secrets.FDK_LOGIN_PASSWORD }}
       run: npx playwright test
+
+    # ----------------------------------------------------
+    # Nahraj screenshoty, videá a trace
+    # ----------------------------------------------------
+    - name: Upload Playwright artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-artifacts
+        path: |
+          playwright-results/
+          playwright-report/
+        if-no-files-found: warn
       
+    # ====================================================
+    # Poslanie e-mailu pri zlyhaní
+    # ====================================================
     - name: Send Failure Notification Email
       if: failure()
       uses: dawidd6/action-send-mail@v3
       with:
-        server_address: ${{ secrets.MAIL_SERVER }} 
-        server_port: ${{ secrets.MAIL_PORT }}     
+        server_address: ${{ secrets.MAIL_SERVER }}
+        server_port: ${{ secrets.MAIL_PORT }}
         username: ${{ secrets.MAIL_USERNAME }}
-        password: ${{ secrets.MAIL_PASSWORD }}    
+        password: ${{ secrets.MAIL_PASSWORD }}
         from: ${{ secrets.MAIL_USERNAME }}
-        secure: true 
+        secure: true
         to: martin.kucera@ekultura.eu
         subject: '🚨 CRON JOB ZLYHAL: Playwright Login Test (FDK Repo)'
         body: |
           Ahoj,
+
           Automatizovaný ranný Playwright test prihlásenia (spustený cez Cron) ZLYHAL.
-          
+
           Prosím, skontrolujte logy akcie pre viac detailov:
           ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          
+
           GitHub Action: FDK Playwright Testy & Xray Report
         
+    # ----------------------------------------------------
+    # Upload výsledkov do Xray
+    # ----------------------------------------------------
     - name: Upload results to Xray via cURL
       if: always()
       env:
-        XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}  
+        XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
         XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
       run: |
         XRAY_AUTH_URL="https://xray.cloud.getxray.app/api/v2/authenticate"
         XRAY_IMPORT_URL="https://xray.cloud.getxray.app/api/v2/import/execution/junit"
         REPORT_FILE="./playwright-results/results.xml"
-        
+
         echo "1/2: Získavam Xray autentifikačný token..."
+
         XRAY_TOKEN=$(curl -s -X POST $XRAY_AUTH_URL \
-             -H "Content-Type: application/json" \
-             -d "{\"client_id\": \"$XRAY_CLIENT_ID\", \"client_secret\": \"$XRAY_CLIENT_SECRET\"}" | tr -d '"')
+          -H "Content-Type: application/json" \
+          -d "{\"client_id\":\"$XRAY_CLIENT_ID\",\"client_secret\":\"$XRAY_CLIENT_SECRET\"}" | tr -d '"')
 
         if [ -z "$XRAY_TOKEN" ]; then
-            echo "CHYBA: Nepodarilo sa získať Xray Token. Nahrávanie prerušené."
-            exit 0
+          echo "CHYBA: Nepodarilo sa získať Xray Token. Nahrávanie prerušené."
+          exit 0
         fi
-        
+
         echo "Token úspešne získaný. Nahrávam výsledky..."
-        
+
         curl -X POST "${XRAY_IMPORT_URL}?projectKey=FDK&testIssueKey=FDK-29&summary=Automatizovaný%20Playwright%20Run%20-%20Valid%20Login%20(CI)" \
-             -H "Content-Type: text/xml" \
-             -H "Authorization: Bearer $XRAY_TOKEN" \
-             --data-binary "@$REPORT_FILE"
+          -H "Content-Type: text/xml" \
+          -H "Authorization: Bearer $XRAY_TOKEN" \
+          --data-binary "@$REPORT_FILE"
 
         echo ""
         echo "Nahrávanie dokončené. Výsledok nájdete v JIRA."
