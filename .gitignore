@@ -1,15 +1,16 @@
-# Súbory a priečinky z Playwright / Node.js
-/node_modules
-/playwright-report/
-/test-results/
-package-lock.json
+# Node.js
+/node_modules/
 
-# Lokálne systémové súbory
-.DS_Store
+# Environment
 .env
 
-# Playwright
-node_modules/
+# Playwright Reports
+/playwright-report/
+/playwright-results/
+/test-results/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# macOS
+.DS_Store
