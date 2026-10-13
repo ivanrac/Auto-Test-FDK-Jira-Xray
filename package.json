@@ -1,23 +1,21 @@
 {
-  "name": "auto-test-bazos",
+  "name": "auto-test-fdk-playwright",
   "version": "1.0.0",
-  "description": "Playwright testy pre Bazos.sk s dátami z Excelu.",
-  "main": "index.js",
+  "description": "Playwright UI automation tests for the FDK web application.",
   "scripts": {
-    "start": "node runScreening.js",
-    "test:prep": "node runScreening.js",
-    "test:run": "npx playwright test ./tests/bazos.spec.js",
-    "test": "npm run test:prep && npm run test:run"
+    "test": "npx playwright test",
+    "test:login": "npx playwright test ./tests/valid_login.spec.js"
   },
   "keywords": [
     "playwright",
-    "excel",
+    "testing",
+    "qa",
     "automation"
   ],
-  "author": "",
+  "author": "Ivan Rac",
   "license": "ISC",
   "dependencies": {
     "@playwright/test": "^1.44.1",
-    "xlsx": "^0.18.5"
+    "dotenv": "^18.0.7"
   }
 }

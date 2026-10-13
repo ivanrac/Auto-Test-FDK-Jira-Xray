@@ -1,5 +1,5 @@
 // data/users.js
-// Obsahuje data definované v Predpoklade FDK-30
+import 'dotenv/config';
 
 export const validUser = {
   login_email: process.env.FDK_LOGIN_USERNAME,

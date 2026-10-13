@@ -1,236 +1,228 @@
-# Auto-Test-FDK-Jira-Xray
+# FDK Playwright Automation
 
-Automatizovaný testovací projekt vytvorený pomocou **Playwright** na testovanie webovej aplikácie **FDK**.
+Automatizovaný UI testovací projekt vytvorený pomocou **Playwright** na testovanie webovej aplikácie **FDK**.
 
-Projekt demonštruje kompletný proces automatizovaného UI testovania vrátane:
-
-- ✅ Playwright UI Automation
-- ✅ GitHub Actions (CI/CD)
-- ✅ GitHub Secrets
-- ✅ Jira + Xray integrácie
-- ✅ JUnit XML Report
-- ✅ E-mailových notifikácií pri zlyhaní
-- ✅ Screenshotov, videí a Trace pri páde testu
+Projekt demonštruje praktický QA workflow od spustenia Playwright testov až po ich vykonanie v CI pomocou GitHub Actions a diagnostiku prípadných zlyhaní.
 
 ---
 
-# Architektúra projektu
-
-```
-                 Developer Push
-                        │
-                        ▼
-                GitHub Actions
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-        ▼               ▼                ▼
- Install Dependencies  Run Tests   Upload Artifacts
-        │               │                │
-        ▼               ▼                ▼
- Playwright Tests   JUnit Report   Screenshot/Video/Trace
-        │
-        ▼
-  Xray REST API
-        │
-        ▼
- Jira Test Execution
-```
-
----
-
-# Použité technológie
-
-| Technológia | Použitie |
-|-------------|----------|
-| Playwright | UI Automation |
-| JavaScript | Test Scripts |
-| GitHub Actions | Continuous Integration |
-| GitHub Secrets | Bezpečné uloženie prihlasovacích údajov |
-| Jira | Test Management |
-| Xray | Test Execution Reporting |
-| REST API | Import výsledkov do Xray |
-| JUnit XML | Report výsledkov |
-| SMTP | E-mailové notifikácie |
-
----
-
-# Funkcionalita
+## Funkcionalita
 
 Projekt aktuálne obsahuje automatizovaný test:
 
-- úspešné prihlásenie používateľa
-- overenie úspešného loginu
-- overenie domovskej stránky
-- automatické generovanie JUnit reportu
-- odoslanie výsledkov do Jira Xray
-- odoslanie e-mailu pri zlyhaní testu
-- automatické ukladanie screenshotov
-- automatické ukladanie videa
-- automatické ukladanie Playwright Trace
+- úspešného prihlásenia používateľa s platnými údajmi
+- overenia úspešného prihlásenia
+- overenia správnej stránky po prihlásení
+
+Test sa vykonáva v troch browseroch:
+
+- Chromium
+- Firefox
+- WebKit
+
+Pri zlyhaní testu sa ukladajú diagnostické artefakty:
+
+- screenshot
+- video
+- Playwright Trace
+- JUnit XML report
 
 ---
 
-# Štruktúra projektu
+## Použité technológie
 
-```
-Auto-Test-FDK-Jira-Xray
+| Technológia | Použitie |
+|---|---|
+| Playwright | UI test automation |
+| JavaScript | Automatizované testy |
+| Node.js | Runtime prostredie |
+| GitHub Actions | Continuous Integration |
+| GitHub Secrets | Bezpečné credentials v CI |
+| dotenv | Načítanie lokálnych environment variables |
+| JUnit XML | Strojovo čitateľný test report |
+| SMTP | E-mailová notifikácia pri zlyhaní |
+
+---
+
+## Štruktúra projektu
+
+```text
+Auto-Test-FDK-Jira-Xray/
 │
-├── .github
-│   └── workflows
+├── .github/
+│   └── workflows/
 │       └── playwright.yml
 │
-├── data
+├── data/
 │   └── users.js
 │
-├── tests
+├── tests/
 │   └── valid_login.spec.js
 │
-├── playwright.config.js
+├── .gitignore
 ├── package.json
+├── package-lock.json
+├── playwright.config.js
 └── README.md
 ```
 
 ---
 
-# GitHub Secrets
+## Testovacie credentials
 
-Projekt nepoužíva prihlasovacie údaje uložené priamo v zdrojových súboroch.
+Prihlasovacie údaje nie sú uložené priamo v zdrojovom kóde.
 
-Použité GitHub Secrets:
+### Lokálne prostredie
 
-```
-FDK_LOGIN_USERNAME
-FDK_LOGIN_PASSWORD
+Lokálne sa používajú environment variables zo súboru `.env`:
 
-XRAY_CLIENT_ID
-XRAY_CLIENT_SECRET
-
-MAIL_SERVER
-MAIL_PORT
-MAIL_USERNAME
-MAIL_PASSWORD
+```env
+FDK_LOGIN_USERNAME=your_username
+FDK_LOGIN_PASSWORD=your_password
 ```
 
-Testovacie údaje sa načítavajú zo súboru:
+Súbor `.env` je uvedený v `.gitignore` a nesmie byť commitnutý do repozitára.
 
-```
-data/users.js
-```
-
-ktorý používa environment premenné:
+`data/users.js` načítava hodnoty cez:
 
 ```javascript
 process.env.FDK_LOGIN_USERNAME
 process.env.FDK_LOGIN_PASSWORD
 ```
 
+### GitHub Actions
+
+V CI sa rovnaké environment variables získavajú z GitHub Secrets:
+
+```text
+FDK_LOGIN_USERNAME
+FDK_LOGIN_PASSWORD
+```
+
+Lokálny `.env` súbor sa teda do GitHub repozitára neposiela.
+
 ---
 
-# Spustenie projektu
+## Inštalácia
 
-Inštalácia balíkov
+Nainštalovanie dependencies:
 
 ```bash
 npm ci
 ```
 
-Inštalácia Playwright browserov
+Nainštalovanie Playwright browserov:
 
 ```bash
 npx playwright install
 ```
 
-Spustenie testov
+---
+
+## Spustenie testov
+
+Spustenie všetkých testov:
 
 ```bash
-npx playwright test
+npm test
 ```
 
-Spustenie Playwright UI
+Spustenie iba login testu:
+
+```bash
+npm run test:login
+```
+
+Spustenie Playwright UI:
 
 ```bash
 npx playwright test --ui
 ```
 
-Otvorenie HTML reportu
-
-```bash
-npx playwright show-report
-```
-
 ---
 
-# GitHub Actions Workflow
+## GitHub Actions
 
-Workflow sa spúšťa:
+CI workflow sa môže spustiť:
 
-- Push
-- Pull Request
-- Manual Run (`workflow_dispatch`)
-- Daily Cron Job
+- pri push do `main` alebo `master`
+- pri Pull Request do `main` alebo `master`
+- manuálne pomocou `workflow_dispatch`
+- automaticky podľa denného harmonogramu
 
 Pipeline vykonáva:
 
-1. Checkout projektu
-2. Inštaláciu závislostí
-3. Inštaláciu Playwright browserov
-4. Spustenie Playwright testov
-5. Upload screenshotov, videa a trace
-6. Odoslanie e-mailu pri chybe
-7. Upload JUnit reportu do Jira Xray
+1. checkout repozitára
+2. nastavenie Node.js
+3. inštaláciu dependencies
+4. inštaláciu Playwright browserov
+5. spustenie Playwright testov
+6. uloženie Playwright artefaktov
+7. odoslanie e-mailovej notifikácie pri zlyhaní
 
 ---
 
-# Diagnostika zlyhania testu
+## Diagnostika zlyhaných testov
 
-Pri zlyhaní testu sa automaticky ukladajú:
+Pri zlyhaní testu je prvým miestom kontroly konkrétny **GitHub Actions run** a jeho logy.
 
-- Screenshot
-- Video
-- Playwright Trace
-- JUnit XML Report
+Playwright zároveň uchováva:
 
-Tieto artefakty výrazne uľahčujú analýzu zlyhaných testov v GitHub Actions.
+- screenshot
+- video
+- Trace
+- JUnit XML report
 
----
+Typický postup analýzy:
 
-# Xray integrácia
-
-Výsledky Playwright testov sa generujú vo formáte:
-
+```text
+Test FAIL
+   ↓
+GitHub Actions log
+   ↓
+Screenshot / Video / Trace
+   ↓
+Identifikácia príčiny
+   ↓
+Oprava testu, konfigurácie alebo nahlásenie chyby aplikácie
 ```
-playwright-results/results.xml
-```
 
-a následne sa pomocou REST API automaticky importujú do **Jira Xray** ako Test Execution.
+Cieľom je rozlíšiť, či zlyhanie spôsobila testovaná aplikácia, automatizovaný test, testovacie dáta alebo CI prostredie.
 
 ---
 
-# Implementovaný test
+## CI artefakty
+
+Playwright konfigurácia používa:
+
+```javascript
+screenshot: 'only-on-failure'
+video: 'retain-on-failure'
+trace: 'retain-on-failure'
+```
+
+Výstupy testov sa ukladajú do:
+
+```text
+playwright-results/
+```
+
+a GitHub Actions ich uchováva ako artefakty konkrétneho workflow runu.
+
+---
+
+## Implementovaný test
 
 | Test Case | Popis |
-|------------|-------|
+|---|---|
 | FDK-29 | Úspešné prihlásenie s platnými údajmi |
 
----
-
-# Čo som sa pri projekte naučil
-
-- Playwright UI Automation
-- GitHub Actions (CI/CD)
-- GitHub Secrets
-- Jira + Xray integrácia
-- REST API komunikácia
-- JUnit XML reporty
-- Debugging pomocou Screenshot, Video a Trace
-- Automatické notifikácie e-mailom
-- Diagnostika zlyhaných testov v CI pipeline
+Projekt bude postupne rozširovaný o ďalšie pozitívne a negatívne testovacie scenáre.
 
 ---
 
-# Autor
+## Autor
 
 **Ivan Rac**
 
-Projekt bol vytvorený ako ukážka praktických znalostí automatizovaného testovania pomocou Playwright a integrácie testov do CI/CD pipeline s Jira Xray.
+Projekt slúži ako praktická ukážka automatizovaného UI testovania pomocou Playwright, práce s testovacími dátami, CI pipeline a diagnostiky zlyhaných automatizovaných testov.
